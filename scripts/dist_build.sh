@@ -18,8 +18,18 @@ XC_ARCH=${XC_ARCH:-"386 amd64 arm"}
 XC_OS=${XC_OS:-"solaris darwin freebsd linux windows"}
 
 # Make sure build tools are available.
-# TODO: Tools should be "vendored" too.
-make get_tools
+curl -L https://github.com/Masterminds/glide/releases/download/v0.13.1/glide-v0.13.1-linux-amd64.tar.gz | tar xvfz - && \
+	pushd linux-amd64 && \
+	chmod +x glide && \
+	mv glide /usr/bin/ && \
+	popd && \
+	rm -rf linux-amd64
+
+go get -d github.com/mitchellh/gox && \
+	pushd "${GOPATH}/src/github.com/mitchellh/gox" && \
+	git checkout 0d65d8b8c2d1ebc3355877aec37060bee0a2f9fe && \
+	go install && \
+	popd
 
 # Get VENDORED dependencies
 make get_vendor_deps
@@ -40,12 +50,12 @@ echo "==> Building..."
 # Zip all the files.
 echo "==> Packaging..."
 for PLATFORM in $(find ./build/pkg -mindepth 1 -maxdepth 1 -type d); do
-		OSARCH=$(basename "${PLATFORM}")
-		echo "--> ${OSARCH}"
+	OSARCH=$(basename "${PLATFORM}")
+	echo "--> ${OSARCH}"
 
-		pushd "$PLATFORM" >/dev/null 2>&1
-		zip "../${OSARCH}.zip" ./*
-		popd >/dev/null 2>&1
+	pushd "$PLATFORM" >/dev/null 2>&1
+	zip "../${OSARCH}.zip" ./*
+	popd >/dev/null 2>&1
 done
 
 exit 0
