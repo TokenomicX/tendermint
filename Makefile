@@ -17,17 +17,17 @@ check: check_tools get_vendor_deps
 ### Build
 
 build:
-	go build $(BUILD_FLAGS) -o build/tendermint ./cmd/tendermint/
+	go build $(BUILD_FLAGS) -tags '$(BUILD_TAGS)' -o build/tendermint ./cmd/tendermint/
 
 build_race:
-	go build -race $(BUILD_FLAGS) -o build/tendermint ./cmd/tendermint
+	go build -race $(BUILD_FLAGS) -tags '$(BUILD_TAGS)' -o build/tendermint ./cmd/tendermint
 
 # dist builds binaries for all platforms and packages them for distribution
 dist:
 	@BUILD_TAGS='$(BUILD_TAGS)' sh -c "'$(CURDIR)/scripts/dist.sh'"
 
 install:
-	go install $(BUILD_FLAGS) ./cmd/tendermint
+	go install $(BUILD_FLAGS) -tags '$(BUILD_TAGS)' ./cmd/tendermint
 
 
 ########################################
