@@ -5,8 +5,7 @@ GOTOOLS = \
 GOTOOLS_CHECK = glide ghr gometalinter.v2
 PACKAGES=$(shell go list ./... | grep -v '/vendor/')
 BUILD_TAGS?=tendermint
-TMHOME = $${TMHOME:-$$HOME/.tendermint}
-BUILD_FLAGS = -ldflags "-X github.com/tendermint/tendermint/version.GitCommit=`git rev-parse --short HEAD`"
+BUILD_FLAGS = -ldflags "-X github.com/tendermint/tendermint/version.GitCommit=`git rev-parse --short=8 HEAD`"
 
 all: check build test install metalinter
 
@@ -22,13 +21,15 @@ build:
 build_race:
 	go build -race $(BUILD_FLAGS) -tags '$(BUILD_TAGS)' -o build/tendermint ./cmd/tendermint
 
-# dist builds binaries for all platforms and packages them for distribution
-dist:
-	@BUILD_TAGS='$(BUILD_TAGS)' sh -c "'$(CURDIR)/scripts/dist.sh'"
-
 install:
 	go install $(BUILD_FLAGS) -tags '$(BUILD_TAGS)' ./cmd/tendermint
 
+########################################
+### Distribution
+
+# dist builds binaries for all platforms and packages them for distribution
+dist:
+	@BUILD_TAGS='$(BUILD_TAGS)' sh -c "'$(CURDIR)/scripts/dist.sh'"
 
 ########################################
 ### Tools & dependencies
