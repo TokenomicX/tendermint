@@ -7,9 +7,6 @@ PACKAGES=$(shell go list ./... | grep -v '/vendor/')
 BUILD_TAGS?=tendermint
 TMHOME = $${TMHOME:-$$HOME/.tendermint}
 BUILD_FLAGS = -ldflags "-X github.com/tendermint/tendermint/version.GitCommit=`git rev-parse --short HEAD`"
-GOPATH ?= $(shell go env GOPATH)
-GOOS ?= $(shell go env GOOS)
-GOARCH ?= $(shell go env GOARCH)
 
 all: check build test install metalinter
 
@@ -19,28 +16,19 @@ check: check_tools get_vendor_deps
 ########################################
 ### Build
 
-# build and install build a binary inside docker
 build:
-	@XC_OS='$(GOOS)' XC_ARCH='$(GOARCH)' BUILD_TAGS='$(BUILD_TAGS)' sh -c "'$(CURDIR)/scripts/dist.sh'"
-	@cp ./build/pkg/$(GOOS)_$(GOARCH)/tendermint ./build
+	go build $(BUILD_FLAGS) -o build/tendermint ./cmd/tendermint/
 
-install: build
-	@mkdir -p $(GOPATH)/bin
-	@cp ./build/tendermint $(GOPATH)/bin
-
-# dev-* targets build a binary locally
-dev-build:
-	go build $(BUILD_FLAGS) -tags '$(BUILD_TAGS)' -o build/tendermint ./cmd/tendermint/
-
-dev-build-race:
-	go build -race $(BUILD_FLAGS) -tags '$(BUILD_TAGS)' -o build/tendermint ./cmd/tendermint
-
-dev-install:
-	go install $(BUILD_FLAGS) -tags '$(BUILD_TAGS)' ./cmd/tendermint
+build_race:
+	go build -race $(BUILD_FLAGS) -o build/tendermint ./cmd/tendermint
 
 # dist builds binaries for all platforms and packages them for distribution
 dist:
 	@BUILD_TAGS='$(BUILD_TAGS)' sh -c "'$(CURDIR)/scripts/dist.sh'"
+
+install:
+	go install $(BUILD_FLAGS) ./cmd/tendermint
+
 
 ########################################
 ### Tools & dependencies
@@ -140,4 +128,4 @@ metalinter_all:
 # To avoid unintended conflicts with file names, always add to .PHONY
 # unless there is a reason not to.
 # https://www.gnu.org/software/make/manual/html_node/Phony-Targets.html
-.PHONY: check dev-build dev-build-race dev-install build install dist check_tools get_tools update_tools get_vendor_deps draw_deps test test_race test_integrations test_release test100 vagrant_test fmt metalinter metalinter_all
+.PHONY: check build build_race dist install check_tools get_tools update_tools get_vendor_deps draw_deps test test_race test_integrations test_release test100 vagrant_test fmt metalinter metalinter_all
