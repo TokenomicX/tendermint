@@ -16,6 +16,7 @@ GIT_IMPORT="github.com/tendermint/tendermint/version"
 # Determine the arch/os combos we're building for
 XC_ARCH=${XC_ARCH:-"386 amd64 arm"}
 XC_OS=${XC_OS:-"solaris darwin freebsd linux windows"}
+XC_EXCLUDE=${XC_EXCLUDE:-" darwin/arm solaris/amd64 solaris/386 solaris/arm freebsd/amd64 windows/arm "}
 
 # Make sure build tools are available.
 curl -L https://github.com/Masterminds/glide/releases/download/v0.13.1/glide-v0.13.1-linux-amd64.tar.gz | tar xvfz - && \
@@ -25,12 +26,6 @@ curl -L https://github.com/Masterminds/glide/releases/download/v0.13.1/glide-v0.
 	popd && \
 	rm -rf linux-amd64
 
-go get -d github.com/mitchellh/gox && \
-	pushd "${GOPATH}/src/github.com/mitchellh/gox" && \
-	git checkout 0d65d8b8c2d1ebc3355877aec37060bee0a2f9fe && \
-	go install && \
-	popd
-
 # Get VENDORED dependencies
 make get_vendor_deps
 
@@ -38,14 +33,16 @@ make get_vendor_deps
 # ldflags: -s Omit the symbol table and debug information.
 #	         -w Omit the DWARF symbol table.
 echo "==> Building..."
-"$(which gox)" \
-		-os="${XC_OS}" \
-		-arch="${XC_ARCH}" \
-		-osarch="!darwin/arm !solaris/amd64 !freebsd/amd64" \
-		-ldflags "-s -w -X ${GIT_IMPORT}.GitCommit=${GIT_COMMIT}" \
-		-output "build/pkg/{{.OS}}_{{.Arch}}/tendermint" \
-		-tags="${BUILD_TAGS}" \
-		github.com/tendermint/tendermint/cmd/tendermint
+IFS=' ' read -ra arch_list <<< "$XC_ARCH"
+IFS=' ' read -ra os_list <<< "$XC_OS"
+for arch in "${arch_list[@]}"; do
+	for os in "${os_list[@]}"; do
+		if [[ "$XC_EXCLUDE" !=  *" $os/$arch "* ]]; then
+			echo "--> $os/$arch"
+			GOOS=${os} GOARCH=${arch} go build -ldflags "-s -w -X ${GIT_IMPORT}.GitCommit=${GIT_COMMIT}" -tags="${BUILD_TAGS}" -o "build/pkg/${os}_${arch}/tendermint" ./cmd/tendermint
+		fi
+	done
+done
 
 # Zip all the files.
 echo "==> Packaging..."
