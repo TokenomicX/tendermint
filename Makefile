@@ -2,7 +2,6 @@ GOTOOLS = \
 	github.com/Masterminds/glide \
 	github.com/tcnksm/ghr \
 	gopkg.in/alecthomas/gometalinter.v2
-GOTOOLS_CHECK = glide ghr gometalinter.v2
 PACKAGES=$(shell go list ./... | grep -v '/vendor/')
 BUILD_TAGS?=tendermint
 BUILD_FLAGS = -ldflags "-X github.com/tendermint/tendermint/version.GitCommit=`git rev-parse --short=8 HEAD`"
@@ -36,7 +35,7 @@ dist:
 
 check_tools:
 	@# https://stackoverflow.com/a/25668869
-	@echo "Found tools: $(foreach tool,$(GOTOOLS_CHECK),\
+	@echo "Found tools: $(foreach tool,$(notdir $(GOTOOLS)),\
         $(if $(shell which $(tool)),$(tool),$(error "No $(tool) in PATH")))"
 
 get_tools:
