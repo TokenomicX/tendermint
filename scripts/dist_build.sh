@@ -19,12 +19,7 @@ XC_OS=${XC_OS:-"solaris darwin freebsd linux windows"}
 XC_EXCLUDE=${XC_EXCLUDE:-" darwin/arm solaris/amd64 solaris/386 solaris/arm freebsd/amd64 windows/arm "}
 
 # Make sure build tools are available.
-curl -L https://github.com/Masterminds/glide/releases/download/v0.13.1/glide-v0.13.1-linux-amd64.tar.gz | tar xvfz - && \
-	pushd linux-amd64 && \
-	chmod +x glide && \
-	mv glide /usr/bin/ && \
-	popd && \
-	rm -rf linux-amd64
+go get -u github.com/tendermint/glide
 
 # Get VENDORED dependencies
 make get_vendor_deps
