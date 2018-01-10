@@ -345,13 +345,15 @@ func (mem *Mempool) collectTxs(maxTxs int) types.Txs {
 	return txs
 }
 
+// Flushes the mempool connection to ensure async resCb calls are done e.g. from CheckTx
+func (mem *Mempool) FlushAppConn() error {
+	return mem.proxyAppConn.FlushSync()
+}
+
 // Update informs the mempool that the given txs were committed and can be discarded.
 // NOTE: this should be called *after* block is committed by consensus.
 // NOTE: unsafe; Lock/Unlock must be managed by caller
 func (mem *Mempool) Update(height int64, txs types.Txs) error {
-	if err := mem.proxyAppConn.FlushSync(); err != nil { // To flush async resCb calls e.g. from CheckTx
-		return err
-	}
 	// First, create a lookup map of txns in new txs.
 	txsMap := make(map[string]struct{})
 	for _, tx := range txs {
