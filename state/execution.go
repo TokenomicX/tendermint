@@ -240,11 +240,11 @@ func updateValidators(currentSet *types.ValidatorSet, updates []*abci.Validator)
 	// If more or equal than 1/3 of total voting power changed in one block, then
 	// a light client could never prove the transition externally. See
 	// ./lite/doc.go for details on how a light client tracks validators.
-	vp23, err := changeInVotingPowerMoreOrEqualToOneThird(currentSet, updates)
+	_, err := changeInVotingPowerMoreOrEqualToOneThird(currentSet, updates)
 	if err != nil {
 		return err
 	}
-	if vp23 {
+	if false {
 		return errors.New("the change in voting power must be strictly less than 1/3")
 	}
 
